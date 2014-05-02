@@ -1,0 +1,50 @@
+- hosts: all
+  vars:
+    ssh__keyfile: fozz.pub
+    gitolite__home: /git
+  tasks:
+    - name: "APT: Update Cache"
+      apt:  update_cache=yes
+      sudo: true
+
+    - name: "APT: Required Packages"
+      apt:  package={{ item }} state=present
+      with_items:
+        - git
+        - git-annex
+      sudo: true
+
+    - name: "APT: Install Packages"
+      apt:  package={{ item }} state=present
+      with_items:
+        - vim
+      sudo: true
+
+    - name: "Create Gitolite User"
+      user: name=git home={{ gitolite__home }}
+      sudo: true
+
+    - name: "Copy Initial Public Key"
+      copy: src={{ ssh__keyfile }} dest={{ gitolite__home }}/{{ ssh__keyfile }} owner=git mode=0600
+      sudo: true
+
+    - name: "Gitolite: Commands"
+      shell: su -c 'cd {{ gitolite__home}}; {{ item }}' git
+      with_items:
+        - rm -rf $HOME/gitolite
+        - git clone git://github.com/sitaramc/gitolite
+        - mkdir -p $HOME/bin
+        - gitolite/install -to $HOME/bin
+        - bin/gitolite setup -pk {{ ssh__keyfile }}
+      sudo: true
+
+    - name: "Gitolite: Enable Git Annex"
+      lineinfile: dest={{ gitolite__home }}/.gitolite.rc regexp="# COMMANDS" line="            'git-annex-shell ua',"
+      sudo: true
+
+    - name: "Gitolite: Remove Public Key from File System"
+      file: path={{ gitolite__home }}/{{ ssh__keyfile }} state=absent
+      sudo: true
+
+    - name: "I made this silly mistake..."
+      debug: msg="Clone a repo; do `git annex init`; remember to git push --all"

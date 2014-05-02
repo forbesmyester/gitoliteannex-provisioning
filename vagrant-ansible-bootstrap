@@ -1,0 +1,8 @@
+#!/bin/sh
+
+cd /vagrant
+./install-ansible
+mkdir -p /etc/ansible
+echo '[vagrant]' > /etc/ansible/hosts
+echo '127.0.0.1' >> /etc/ansible/hosts
+su vagrant -c "ansible-playbook -c local /vagrant/playbook.yml"

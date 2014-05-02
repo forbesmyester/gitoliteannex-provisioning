@@ -1,0 +1,6 @@
+#!/bin/bash
+
+apt-get update
+apt-get -y install python-pip python-dev
+pip install ansible
+mkdir -p /etc/ansible
