@@ -1,7 +1,8 @@
 - hosts: all
   vars:
     ssh__keyfile: fozz.pub
-    gitolite__home: /git
+    gitolite__home: /home/gitolite
+    gitolite__user: gitolite
   tasks:
     - name: "APT: Update Cache"
       apt:  update_cache=yes
@@ -21,15 +22,15 @@
       sudo: true
 
     - name: "Create Gitolite User"
-      user: name=git home={{ gitolite__home }}
+      user: name={{ gitolite__user }} home={{ gitolite__home }}
       sudo: true
 
     - name: "Copy Initial Public Key"
-      copy: src={{ ssh__keyfile }} dest={{ gitolite__home }}/{{ ssh__keyfile }} owner=git mode=0600
+      copy: src={{ ssh__keyfile }} dest={{ gitolite__home }}/{{ ssh__keyfile }} owner={{ gitolite__user }} mode=0600
       sudo: true
 
     - name: "Gitolite: Commands"
-      shell: su -c 'cd {{ gitolite__home}}; {{ item }}' git
+      shell: su -c 'cd {{ gitolite__home}}; {{ item }}' {{ gitolite__user }}
       with_items:
         - rm -rf $HOME/gitolite
         - git clone git://github.com/sitaramc/gitolite
